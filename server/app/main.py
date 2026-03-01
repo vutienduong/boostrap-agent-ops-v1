@@ -1,7 +1,18 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="AgentOps", version="0.1.0")
+from app.core.seed import seed_default_project
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await seed_default_project()
+    yield
+
+
+app = FastAPI(title="AgentOps", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
