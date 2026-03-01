@@ -9,7 +9,8 @@ async def normalize_event(session: AsyncSession, event: dict) -> None:
     event_type = event["event_type"]
     ctx = event["context"]
     payload = event.get("payload", {})
-    timestamp = event.get("timestamp")
+    raw_ts = event.get("timestamp")
+    timestamp = isoparse(raw_ts) if isinstance(raw_ts, str) else raw_ts
 
     if event_type == "run_started":
         run = Run(
