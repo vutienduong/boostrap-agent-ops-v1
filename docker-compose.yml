@@ -9,17 +9,24 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-agentops}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   api:
     build: ./server
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql+asyncpg://agentops:agentops@postgres:5432/agentops
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-agentops}:${POSTGRES_PASSWORD:-agentops}@postgres:5432/${POSTGRES_DB:-agentops}
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     volumes:
       - ./server:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   dashboard:
     build: ./dashboard
