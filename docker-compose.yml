@@ -1,0 +1,37 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-agentops}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-agentops}
+      POSTGRES_DB: ${POSTGRES_DB:-agentops}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  api:
+    build: ./server
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://agentops:agentops@postgres:5432/agentops
+    depends_on:
+      - postgres
+    volumes:
+      - ./server:/app
+
+  dashboard:
+    build: ./dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    depends_on:
+      - api
+    volumes:
+      - ./dashboard:/app
+      - /app/node_modules
+
+volumes:
+  pgdata:
