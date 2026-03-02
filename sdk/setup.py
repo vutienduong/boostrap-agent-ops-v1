@@ -7,6 +7,7 @@ setup(
     install_requires=[
         "httpx>=0.28.0",
         "python-ulid>=3.0.0",
+        "typing_extensions>=4.0.0",
     ],
     extras_require={
         "dev": ["pytest", "pytest-httpx"],
