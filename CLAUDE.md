@@ -64,3 +64,17 @@ Four event types: `run_started`, `span_started`, `span_finished`, `run_finished`
 ## Reference Docs
 - `docs/prd.md` - Full PRD with use cases, pricing, and success metrics
 - `docs/mvp-architect.md` - Architecture details, data model, event contracts, API surface, and 2-week sprint plan
+
+## Development Commands
+
+| Command | Purpose |
+|---------|---------|
+| `docker compose up -d` | Start Postgres (and all services) |
+| `cd server && alembic upgrade head` | Run DB migrations |
+| `cd server && DATABASE_URL="postgresql+asyncpg://agentops:agentops@localhost:5432/agentops" uvicorn app.main:app --reload` | Run API server locally |
+| `cd server && pytest -v` | Run server tests |
+| `cd sdk && pip install -e ".[dev]"` | Install SDK in dev mode |
+| `cd sdk && pytest -v` | Run SDK tests |
+| `cd dashboard && npm run dev` | Start dashboard (http://localhost:3000) |
+| `cd dashboard && npm run build` | Build/type-check dashboard |
+| `python examples/hello_trace.py` | Run end-to-end smoke test |
