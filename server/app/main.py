@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.ingest import router as ingest_router
+from app.api.metrics import router as metrics_router
 from app.api.runs import router as runs_router
 from app.core.seed import seed_default_project
 
@@ -26,6 +27,7 @@ app.add_middleware(
 
 app.include_router(ingest_router)
 app.include_router(runs_router)
+app.include_router(metrics_router)
 
 
 @app.get("/health")

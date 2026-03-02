@@ -56,3 +56,36 @@ export async function fetchRun(runId: string): Promise<RunDetail> {
   if (!res.ok) throw new Error("Failed to fetch run");
   return res.json();
 }
+
+export interface CostByDay {
+  date: string;
+  cost_usd: number;
+  prompt_tokens: number;
+  completion_tokens: number;
+  run_count: number;
+}
+
+export interface CostByModel {
+  model: string;
+  cost_usd: number;
+  prompt_tokens: number;
+  completion_tokens: number;
+  span_count: number;
+}
+
+export interface CostMetrics {
+  total_cost_usd: number;
+  total_prompt_tokens: number;
+  total_completion_tokens: number;
+  by_day: CostByDay[];
+  by_model: CostByModel[];
+}
+
+export async function fetchCostMetrics(projectId: string): Promise<CostMetrics> {
+  const res = await fetch(
+    `${API_URL}/v1/metrics/cost?project_id=${projectId}`,
+    { cache: "no-store", headers: { "X-AgentOps-Key": "dev_agentops_key_local" } }
+  );
+  if (!res.ok) throw new Error("Failed to fetch cost metrics");
+  return res.json();
+}

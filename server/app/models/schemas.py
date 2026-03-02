@@ -77,3 +77,27 @@ class RunDetail(RunSummary):
 class RunListResponse(BaseModel):
     runs: list[RunSummary]
     cursor: str | None = None
+
+
+class CostByDay(BaseModel):
+    date: str  # YYYY-MM-DD
+    cost_usd: float
+    prompt_tokens: int
+    completion_tokens: int
+    run_count: int
+
+
+class CostByModel(BaseModel):
+    model: str
+    cost_usd: float
+    prompt_tokens: int
+    completion_tokens: int
+    span_count: int
+
+
+class CostMetricsResponse(BaseModel):
+    total_cost_usd: float
+    total_prompt_tokens: int
+    total_completion_tokens: int
+    by_day: list[CostByDay] = []
+    by_model: list[CostByModel] = []
