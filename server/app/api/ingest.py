@@ -8,9 +8,11 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auth import require_api_key
 from app.core.config import settings
 from app.core.db import get_db
 from app.models.schemas import IngestEvent, IngestResponse
+from app.models.tables import ApiKey
 from app.services.ingest_store import store_raw_events
 
 router = APIRouter(prefix="/v1", tags=["ingest"])
@@ -24,6 +26,7 @@ async def get_arq_pool():
 async def ingest_events(
     request: Request,
     session: AsyncSession = Depends(get_db),
+    api_key: ApiKey = Depends(require_api_key),
 ):
     body = await request.body()
 

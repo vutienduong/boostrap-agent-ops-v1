@@ -3,9 +3,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.core.auth import require_api_key
 from app.core.db import get_db
 from app.models.schemas import RunDetail, RunListResponse, RunSummary, SpanResponse
-from app.models.tables import Run, Span
+from app.models.tables import ApiKey, Run, Span
 
 router = APIRouter(prefix="/v1", tags=["runs"])
 
@@ -16,6 +17,7 @@ async def list_runs(
     limit: int = Query(50, le=100),
     cursor: str | None = Query(None),
     session: AsyncSession = Depends(get_db),
+    api_key: ApiKey = Depends(require_api_key),
 ):
     query = (
         select(Run)
@@ -59,6 +61,7 @@ async def list_runs(
 async def get_run(
     run_id: str,
     session: AsyncSession = Depends(get_db),
+    api_key: ApiKey = Depends(require_api_key),
 ):
     result = await session.execute(
         select(Run).options(selectinload(Run.spans)).where(Run.id == run_id)
