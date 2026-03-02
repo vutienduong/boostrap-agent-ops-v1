@@ -31,7 +31,7 @@ def track(name: str | None = None):
             try:
                 result = func(*args, **kwargs)
                 return result
-            except Exception as e:
+            except Exception:
                 status = "fail"
                 raise
             finally:
@@ -57,6 +57,7 @@ def track(name: str | None = None):
                     )
                 )
                 _client.send_events(events)
+                _client.flush()  # immediate flush after each run for good DX
 
         return wrapper
     return decorator

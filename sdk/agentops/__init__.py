@@ -13,4 +13,10 @@ def init(
     _client = AgentOpsClient(api_key=api_key, endpoint=endpoint, project_id=project)
 
 
-__all__ = ["init", "track"]
+def flush() -> None:
+    """Force flush all buffered events."""
+    if _client is not None:
+        _client.flush()
+
+
+__all__ = ["init", "track", "flush"]
