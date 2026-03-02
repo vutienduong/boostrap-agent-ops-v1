@@ -1,16 +1,23 @@
 import gzip
 import json
+from collections import defaultdict
 
+from arq import create_pool
+from arq.connections import RedisSettings
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.db import get_db
 from app.models.schemas import IngestEvent, IngestResponse
 from app.services.ingest_store import store_raw_events
-from app.services.normalizer import normalize_event
 
 router = APIRouter(prefix="/v1", tags=["ingest"])
+
+
+async def get_arq_pool():
+    return await create_pool(RedisSettings.from_dsn(settings.redis_url))
 
 
 @router.post("/ingest", response_model=IngestResponse)
@@ -31,7 +38,6 @@ async def ingest_events(
             content={"accepted": 0, "rejected": 1, "errors": ["Invalid JSON body"]},
         )
 
-    # Validate each event with Pydantic
     valid_events = []
     rejected = 0
     errors = []
@@ -47,10 +53,20 @@ async def ingest_events(
     rejected += rej2
     errors.extend(errs2)
 
-    for raw in valid_events:
-        try:
-            await normalize_event(session, raw)
-        except Exception:
-            pass
+    # Enqueue normalization jobs per unique run_id
+    run_ids = {e["context"]["run_id"] for e in valid_events}
+    try:
+        pool = await get_arq_pool()
+        for run_id in run_ids:
+            await pool.enqueue_job("normalize_run_events", run_id)
+        await pool.aclose()
+    except Exception:
+        # If Redis is unavailable, fall back to inline normalization
+        from app.services.normalizer import normalize_event
+        for raw in valid_events:
+            try:
+                await normalize_event(session, raw)
+            except Exception:
+                pass
 
     return IngestResponse(accepted=accepted, rejected=rejected, errors=errors)

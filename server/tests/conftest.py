@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
@@ -29,6 +31,16 @@ async def setup_db():
         await conn.run_sync(Base.metadata.drop_all)
 
     await engine.dispose()
+
+
+@pytest.fixture(autouse=True)
+def mock_redis():
+    """Mock Redis/arq pool so tests fall back to inline normalization."""
+    async def _raise(*args, **kwargs):
+        raise ConnectionError("Redis not available in tests")
+
+    with patch("app.api.ingest.get_arq_pool", side_effect=_raise):
+        yield
 
 
 @pytest.fixture
