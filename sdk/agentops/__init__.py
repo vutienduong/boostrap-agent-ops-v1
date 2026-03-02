@@ -1,5 +1,7 @@
 from agentops.client import AgentOpsClient
 from agentops.decorators import track
+from agentops.instrumentors.openai import instrument_openai
+from agentops.instrumentors.anthropic import instrument_anthropic
 
 _client: AgentOpsClient | None = None
 
@@ -19,4 +21,4 @@ def flush() -> None:
         _client.flush()
 
 
-__all__ = ["init", "track", "flush"]
+__all__ = ["init", "track", "flush", "instrument_openai", "instrument_anthropic"]

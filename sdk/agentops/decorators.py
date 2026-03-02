@@ -1,7 +1,11 @@
 import functools
+from contextvars import ContextVar
 from datetime import datetime, timezone
 
 from ulid import ULID
+
+# Module-level context var — holds current run_id
+current_run_id: ContextVar[str | None] = ContextVar("current_run_id", default=None)
 
 
 def track(name: str | None = None):
@@ -28,6 +32,7 @@ def track(name: str | None = None):
             )
 
             status = "success"
+            token = current_run_id.set(run_id)  # set context for nested calls
             try:
                 result = func(*args, **kwargs)
                 return result
@@ -35,6 +40,7 @@ def track(name: str | None = None):
                 status = "fail"
                 raise
             finally:
+                current_run_id.reset(token)  # restore context
                 ended_at = datetime.now(timezone.utc).isoformat()
                 events.append(
                     _client._make_event(
@@ -57,7 +63,7 @@ def track(name: str | None = None):
                     )
                 )
                 _client.send_events(events)
-                _client.flush()  # immediate flush after each run for good DX
+                _client.flush()
 
         return wrapper
     return decorator
