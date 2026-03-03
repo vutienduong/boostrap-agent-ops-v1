@@ -1,3 +1,4 @@
+import gzip
 import json
 
 import pytest
@@ -38,7 +39,7 @@ def test_track_decorator_sends_events(httpx_mock: HTTPXMock):
     requests = httpx_mock.get_requests()
     assert len(requests) == 1
 
-    body = json.loads(requests[0].content)
+    body = json.loads(gzip.decompress(requests[0].content))
     event_types = [e["event_type"] for e in body]
     assert "run_started" in event_types
     assert "run_finished" in event_types
@@ -60,9 +61,9 @@ def test_track_decorator_sends_fail_status_on_exception(httpx_mock: HTTPXMock):
         failing_func()
 
     requests = httpx_mock.get_requests()
-    body = json.loads(requests[0].content)
+    body = json.loads(gzip.decompress(requests[0].content))
     finished = next(e for e in body if e["event_type"] == "run_finished")
-    assert finished["payload"]["status"] == "fail"
+    assert finished["payload"]["status"] == "error"
 
 
 def test_track_without_init_runs_normally():
@@ -74,3 +75,19 @@ def test_track_without_init_runs_normally():
         return 42
 
     assert plain_func() == 42
+
+
+def test_flush_sends_buffered_events(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(
+        url="http://fakeserver/v1/ingest",
+        json={"accepted": 1, "rejected": 0, "errors": []},
+    )
+
+    agentops.init(api_key="test_key", endpoint="http://fakeserver")
+    agentops._client.send_events([
+        agentops._client._make_event("run_started", "run_1", None, {"name": "test"})
+    ])
+    agentops.flush()
+
+    requests = httpx_mock.get_requests()
+    assert len(requests) == 1

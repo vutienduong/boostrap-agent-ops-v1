@@ -77,3 +77,64 @@ class RunDetail(RunSummary):
 class RunListResponse(BaseModel):
     runs: list[RunSummary]
     cursor: str | None = None
+
+
+class CostByDay(BaseModel):
+    date: str  # YYYY-MM-DD
+    cost_usd: float
+    prompt_tokens: int
+    completion_tokens: int
+    run_count: int
+
+
+class CostByModel(BaseModel):
+    model: str
+    cost_usd: float
+    prompt_tokens: int
+    completion_tokens: int
+    span_count: int
+
+
+class CostMetricsResponse(BaseModel):
+    total_cost_usd: float
+    total_prompt_tokens: int
+    total_completion_tokens: int
+    by_day: list[CostByDay] = []
+    by_model: list[CostByModel] = []
+
+
+class PromptVersionCreate(BaseModel):
+    key: str
+    version: str
+    content: str
+    meta: dict | None = None
+
+
+class PromptVersionResponse(BaseModel):
+    id: str
+    project_id: str
+    key: str
+    version: str
+    content: str
+    meta: dict | None
+    created_at: datetime
+
+
+class PromptVersionListResponse(BaseModel):
+    versions: list[PromptVersionResponse]
+
+
+class ReplayCreate(BaseModel):
+    source_run_id: str
+    mode: str = "llm_only"
+    overrides: dict | None = None  # e.g. {"model": "gpt-4o-mini", "temperature": 0.5}
+
+
+class ReplayResponse(BaseModel):
+    id: str
+    source_run_id: str
+    new_run_id: str | None
+    mode: str
+    overrides: dict | None
+    status: str
+    created_at: datetime

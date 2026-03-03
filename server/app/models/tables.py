@@ -1,5 +1,5 @@
 import datetime
-from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, func
+from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -92,4 +92,51 @@ class Span(Base):
 
     __table_args__ = (
         Index("ix_spans_run_started", "run_id", "started_at"),
+    )
+
+
+class ApiKey(Base):
+    __tablename__ = "api_keys"
+
+    id: Mapped[str] = mapped_column(String(26), primary_key=True)
+    project_id: Mapped[str] = mapped_column(String(26), ForeignKey("projects.id"))
+    key_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    name: Mapped[str] = mapped_column(String(255), default="default")
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    revoked_at: Mapped[datetime.datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+
+class PromptVersion(Base):
+    __tablename__ = "prompt_versions"
+
+    id: Mapped[str] = mapped_column(String(26), primary_key=True)
+    project_id: Mapped[str] = mapped_column(String(26), ForeignKey("projects.id"))
+    key: Mapped[str] = mapped_column(String(255))
+    version: Mapped[str] = mapped_column(String(50))
+    content: Mapped[str] = mapped_column(Text)
+    meta: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    __table_args__ = (
+        Index("ix_prompt_versions_project_key", "project_id", "key"),
+    )
+
+
+class Replay(Base):
+    __tablename__ = "replays"
+
+    id: Mapped[str] = mapped_column(String(26), primary_key=True)
+    source_run_id: Mapped[str] = mapped_column(String(26), ForeignKey("runs.id"))
+    new_run_id: Mapped[str | None] = mapped_column(String(26), nullable=True)
+    mode: Mapped[str] = mapped_column(String(20), default="llm_only")
+    overrides: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    status: Mapped[str] = mapped_column(String(20), default="queued")  # queued, running, done, failed
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
     )

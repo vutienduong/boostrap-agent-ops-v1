@@ -56,3 +56,99 @@ export async function fetchRun(runId: string): Promise<RunDetail> {
   if (!res.ok) throw new Error("Failed to fetch run");
   return res.json();
 }
+
+export interface CostByDay {
+  date: string;
+  cost_usd: number;
+  prompt_tokens: number;
+  completion_tokens: number;
+  run_count: number;
+}
+
+export interface CostByModel {
+  model: string;
+  cost_usd: number;
+  prompt_tokens: number;
+  completion_tokens: number;
+  span_count: number;
+}
+
+export interface CostMetrics {
+  total_cost_usd: number;
+  total_prompt_tokens: number;
+  total_completion_tokens: number;
+  by_day: CostByDay[];
+  by_model: CostByModel[];
+}
+
+export async function fetchCostMetrics(projectId: string): Promise<CostMetrics> {
+  const res = await fetch(
+    `${API_URL}/v1/metrics/cost?project_id=${projectId}`,
+    { cache: "no-store", headers: { "X-AgentOps-Key": "dev_agentops_key_local" } }
+  );
+  if (!res.ok) throw new Error("Failed to fetch cost metrics");
+  return res.json();
+}
+
+export interface PromptVersion {
+  id: string;
+  project_id: string;
+  key: string;
+  version: string;
+  content: string;
+  meta: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export async function fetchPromptVersions(
+  projectId: string,
+  key?: string
+): Promise<{ versions: PromptVersion[] }> {
+  const params = new URLSearchParams({ project_id: projectId });
+  if (key) params.append("key", key);
+  const res = await fetch(`${API_URL}/v1/prompts?${params}`, {
+    cache: "no-store",
+    headers: { "X-AgentOps-Key": "dev_agentops_key_local" },
+  });
+  if (!res.ok) throw new Error("Failed to fetch prompts");
+  return res.json();
+}
+
+export interface ReplayResponse {
+  id: string;
+  source_run_id: string;
+  new_run_id: string | null;
+  mode: string;
+  overrides: Record<string, unknown> | null;
+  status: string;
+  created_at: string;
+}
+
+export async function createReplay(
+  sourceRunId: string,
+  overrides: { model?: string; temperature?: number }
+): Promise<ReplayResponse> {
+  const res = await fetch(`${API_URL}/v1/replays`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-AgentOps-Key": "dev_agentops_key_local",
+    },
+    body: JSON.stringify({
+      source_run_id: sourceRunId,
+      mode: "llm_only",
+      overrides,
+    }),
+  });
+  if (!res.ok) throw new Error("Failed to create replay");
+  return res.json();
+}
+
+export async function getReplay(replayId: string): Promise<ReplayResponse> {
+  const res = await fetch(`${API_URL}/v1/replays/${replayId}`, {
+    cache: "no-store",
+    headers: { "X-AgentOps-Key": "dev_agentops_key_local" },
+  });
+  if (!res.ok) throw new Error("Failed to fetch replay");
+  return res.json();
+}
