@@ -63,7 +63,7 @@ def test_track_decorator_sends_fail_status_on_exception(httpx_mock: HTTPXMock):
     requests = httpx_mock.get_requests()
     body = json.loads(gzip.decompress(requests[0].content))
     finished = next(e for e in body if e["event_type"] == "run_finished")
-    assert finished["payload"]["status"] == "fail"
+    assert finished["payload"]["status"] == "error"
 
 
 def test_track_without_init_runs_normally():
