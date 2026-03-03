@@ -122,3 +122,19 @@ class PromptVersionResponse(BaseModel):
 
 class PromptVersionListResponse(BaseModel):
     versions: list[PromptVersionResponse]
+
+
+class ReplayCreate(BaseModel):
+    source_run_id: str
+    mode: str = "llm_only"
+    overrides: dict | None = None  # e.g. {"model": "gpt-4o-mini", "temperature": 0.5}
+
+
+class ReplayResponse(BaseModel):
+    id: str
+    source_run_id: str
+    new_run_id: str | None
+    mode: str
+    overrides: dict | None
+    status: str
+    created_at: datetime

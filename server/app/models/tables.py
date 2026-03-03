@@ -126,3 +126,17 @@ class PromptVersion(Base):
     __table_args__ = (
         Index("ix_prompt_versions_project_key", "project_id", "key"),
     )
+
+
+class Replay(Base):
+    __tablename__ = "replays"
+
+    id: Mapped[str] = mapped_column(String(26), primary_key=True)
+    source_run_id: Mapped[str] = mapped_column(String(26), ForeignKey("runs.id"))
+    new_run_id: Mapped[str | None] = mapped_column(String(26), nullable=True)
+    mode: Mapped[str] = mapped_column(String(20), default="llm_only")
+    overrides: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    status: Mapped[str] = mapped_column(String(20), default="queued")  # queued, running, done, failed
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )

@@ -113,3 +113,42 @@ export async function fetchPromptVersions(
   if (!res.ok) throw new Error("Failed to fetch prompts");
   return res.json();
 }
+
+export interface ReplayResponse {
+  id: string;
+  source_run_id: string;
+  new_run_id: string | null;
+  mode: string;
+  overrides: Record<string, unknown> | null;
+  status: string;
+  created_at: string;
+}
+
+export async function createReplay(
+  sourceRunId: string,
+  overrides: { model?: string; temperature?: number }
+): Promise<ReplayResponse> {
+  const res = await fetch(`${API_URL}/v1/replays`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-AgentOps-Key": "dev_agentops_key_local",
+    },
+    body: JSON.stringify({
+      source_run_id: sourceRunId,
+      mode: "llm_only",
+      overrides,
+    }),
+  });
+  if (!res.ok) throw new Error("Failed to create replay");
+  return res.json();
+}
+
+export async function getReplay(replayId: string): Promise<ReplayResponse> {
+  const res = await fetch(`${API_URL}/v1/replays/${replayId}`, {
+    cache: "no-store",
+    headers: { "X-AgentOps-Key": "dev_agentops_key_local" },
+  });
+  if (!res.ok) throw new Error("Failed to fetch replay");
+  return res.json();
+}
