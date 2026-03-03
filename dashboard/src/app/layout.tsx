@@ -30,6 +30,7 @@ export default function RootLayout({
         <nav className="border-b bg-white px-8 py-3 flex gap-6 text-sm">
           <a href="/" className="font-medium text-gray-900 hover:text-blue-600">Runs</a>
           <a href="/cost" className="font-medium text-gray-900 hover:text-blue-600">Cost</a>
+          <a href="/prompts" className="font-medium text-gray-900 hover:text-blue-600">Prompts</a>
         </nav>
         {children}
       </body>

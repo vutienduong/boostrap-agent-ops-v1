@@ -101,3 +101,24 @@ class CostMetricsResponse(BaseModel):
     total_completion_tokens: int
     by_day: list[CostByDay] = []
     by_model: list[CostByModel] = []
+
+
+class PromptVersionCreate(BaseModel):
+    key: str
+    version: str
+    content: str
+    meta: dict | None = None
+
+
+class PromptVersionResponse(BaseModel):
+    id: str
+    project_id: str
+    key: str
+    version: str
+    content: str
+    meta: dict | None
+    created_at: datetime
+
+
+class PromptVersionListResponse(BaseModel):
+    versions: list[PromptVersionResponse]

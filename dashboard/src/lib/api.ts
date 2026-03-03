@@ -89,3 +89,27 @@ export async function fetchCostMetrics(projectId: string): Promise<CostMetrics> 
   if (!res.ok) throw new Error("Failed to fetch cost metrics");
   return res.json();
 }
+
+export interface PromptVersion {
+  id: string;
+  project_id: string;
+  key: string;
+  version: string;
+  content: string;
+  meta: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export async function fetchPromptVersions(
+  projectId: string,
+  key?: string
+): Promise<{ versions: PromptVersion[] }> {
+  const params = new URLSearchParams({ project_id: projectId });
+  if (key) params.append("key", key);
+  const res = await fetch(`${API_URL}/v1/prompts?${params}`, {
+    cache: "no-store",
+    headers: { "X-AgentOps-Key": "dev_agentops_key_local" },
+  });
+  if (!res.ok) throw new Error("Failed to fetch prompts");
+  return res.json();
+}
