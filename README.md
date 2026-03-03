@@ -92,3 +92,33 @@ server/app/
 ## Development
 
 See [CLAUDE.md](./CLAUDE.md) for the full command reference including how to run tests, install the SDK in dev mode, and build the dashboard.
+
+---
+
+## Roadmap
+
+What's built is the MVP — a working end-to-end loop. Below is what comes next, roughly ordered by impact.
+
+### Short term
+
+- **Cost alerts** — notify when daily spend crosses a threshold; email or webhook
+- **Run filtering** — filter runs by status, name, date range, and tag on the dashboard
+- **Node.js SDK** — same `init` + `track` API for TypeScript agents using `AsyncLocalStorage`
+- **Object storage offload** — move large payloads (>32KB) to S3/R2 instead of truncating; serve via signed URLs
+- **Dashboard auth** — email/password login with JWT; project-scoped API keys per user
+
+### Medium term
+
+- **Full replay** — re-execute tool spans in sandboxed environment, not just LLM calls
+- **More providers** — Gemini, Cohere, Mistral, and LangChain/LlamaIndex auto-instrumentation
+- **Prompt experiment framework** — define A/B prompt variants, route traffic, measure outcome metrics
+- **OpenTelemetry export** — emit OTLP traces so runs can be shipped to Grafana, Honeycomb, etc.
+- **Evaluation scoring API** — attach pass/fail scores to runs; track score over prompt versions
+
+### Longer term
+
+- **Multi-agent graph view** — visualize parent/child agent calls as a DAG, not a flat span list
+- **Drift detection** — alert when model output distribution changes significantly across deploys
+- **Cost anomaly detection** — per-run and per-model outlier detection with ML baseline
+- **Team workspace** — multi-user access, role-based permissions, shared dashboards
+- **Stripe billing + quota enforcement** — free tier (1k runs/month), Pro ($49), Startup ($199)
